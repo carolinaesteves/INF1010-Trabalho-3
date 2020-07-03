@@ -3,13 +3,13 @@ typedef struct _item Item;
 
 Heap* heap_cria(int max);
 
-void heapidx_print(Heap *heap);
+void heap_print(Heap *heap);
 
 void heap_print_indent(Heap *heap);
 
 void heap_libera(Heap *heap);
 
-void min_insere (Heap *heap, int prioridade, int casa);
+void minheap_insere (Heap *heap, int prioridade, int casa);
 
 int minheap_remove(Heap* heap);
 
