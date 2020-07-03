@@ -8,7 +8,7 @@ struct _item {
 };
 
 struct _heap {
-    int max; /* tamanho maximo do heapidx */
+    int max; /* tamanho maximo do heap */
     int pos; /* proxima posicao disponivel no vetor */
     Item *itens; /* vetor de itens */
     int* pos_casa; /* para corrigir a heap */
