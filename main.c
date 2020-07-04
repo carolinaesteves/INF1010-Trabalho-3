@@ -128,9 +128,68 @@ void dijkstra(Heap* heap, MazeDef* maze, PlayerDef* player,  int distancia[maze_
     }
 }
 
+void floyd_warshall(MazeDef* maze, PlayerDef* player, int **distancia, int**prox){
+    //distancia vai ser a matriz de saída que finalmente terá a menor distância entre cada par de vértices
+    int i,j,k;
 
-int main()
-{
+    //inicializar a matriz de solução
+    for(i =0; i< maze_getGraphV(maze); i++){
+        for(j=0;j<maze_getGraphV(maze);j++){
+            if (i != j && maze_getGraphEdge(maze, i, j)){
+                char t = maze_getFileTile(maze, vertex_to_map_y(j, maze_getFileCols(maze)), vertex_to_map_x(j, maze_getFileCols(maze)));
+                int custo_vw = t  == 'M' ? 100 : (t  == 'R' ? 5 : 1);
+                distancia[i][j] = custo_vw;
+                prox[i][j] = j;
+            }
+        }
+    }
+
+    for (k=0; k < maze_getGraphV(maze); k++){
+        for(i=0; i < maze_getGraphV(maze); i++){
+            for(j=0; j < maze_getGraphV(maze); j++){
+                if((distancia[i][k] != 10000 && distancia[k][j] != 10000) && distancia[i][j] > distancia[i][k] + distancia[k][j]){
+                    distancia[i][j] = distancia[i][k] + distancia[k][j];
+                    prox[i][j] = prox[i][k];
+                    player->steps++; 
+                }
+            }
+        }
+    }
+    
+}
+
+int floyd_warshall_entre(int u, int v, PlayerDef* player, MazeDef* maze, int **prox){
+
+   if(prox[u][v] == -1)
+      return 0;
+
+    player->current_vertex = u;
+    player->current_y = vertex_to_map_y(player->current_vertex, maze_getFileCols(maze));
+    player->current_x = vertex_to_map_x(player->current_vertex, maze_getFileCols(maze));
+    //player->steps++;
+    
+    display(player, maze);
+    printf(" >> Executando Floyd-Warshall\n");
+    
+    msleep(DELAY);
+    
+    while(u != v){
+        u = prox[u][v];
+       
+        player->current_vertex = u;
+        player->current_y = vertex_to_map_y(player->current_vertex, maze_getFileCols(maze));
+        player->current_x = vertex_to_map_x(player->current_vertex, maze_getFileCols(maze));
+        //player->steps++;
+        
+        display(player, maze);
+        printf(" >> Executando Floyd-Warshall\n");
+        
+        msleep(DELAY);
+   }
+   
+   return u == v;
+}
+int main(){
     int v, w;
     clock_t t;
     
@@ -225,7 +284,40 @@ int main()
     /* FLOYD-WARSHALL */
     else if (ALG == 2)
     {
-        /*inserir codigo*/
+        int **dist_fw = (int**)malloc(maze_getGraphV(maze) * sizeof(int *));
+        for(v = 0; v < maze_getGraphV(maze); v++) dist_fw[v] = (int *)malloc(maze_getGraphV(maze) * sizeof(int));
+        
+        int **prox_fw = (int**)malloc(maze_getGraphV(maze) * sizeof(int *));
+        for(v = 0; v < maze_getGraphV(maze); v++) prox_fw[v] = (int *)malloc(maze_getGraphV(maze) * sizeof(int));
+
+        for (v = 0; v < maze_getGraphV(maze); v++){
+            for (w = 0; w < maze_getGraphV(maze); w++){
+                dist_fw[v][w] = 10000;
+                prox_fw[v][w] = -1;
+            }
+        } 
+        t = clock(); 
+        floyd_warshall(maze, player, dist_fw, prox_fw);
+        t = clock() - t; 
+        if(floyd_warshall_entre(map_to_vertex(maze_getStartY(maze), maze_getStartX(maze), maze_getFileCols(maze)), map_to_vertex(maze_getFinishY(maze), maze_getFinishX(maze), maze_getFileCols(maze)), player, maze, prox_fw)){display(player, maze);
+            printf("Final encontrado c/ Floyd-Warshall em %f segundos\n", ((double)t)/CLOCKS_PER_SEC);
+            printf("Custo total: %d\n", dist_fw[map_to_vertex(maze_getStartY(maze),  maze_getStartX(maze),  maze_getFileCols(maze))]
+                                            [map_to_vertex(maze_getFinishY(maze), maze_getFinishX(maze), maze_getFileCols(maze))]);
+        }
+        else{
+            display(player, maze);
+            printf("Não encontrado c/ Floyd-Warshall em %f segundos\n", ((double)t)/CLOCKS_PER_SEC);
+        }
+            
+            
+        v = map_to_vertex(maze_getStartY(maze), maze_getStartX(maze), maze_getFileCols(maze));
+        w = map_to_vertex(maze_getFinishY(maze), maze_getFinishX(maze), maze_getFileCols(maze));
+        
+        maze_print_path(maze, v);
+        while(v != w){
+            v = prox_fw[v][w];
+            maze_print_path(maze, v);    
+        }
     }
     
     printf ("\033[H");
