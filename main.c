@@ -7,7 +7,7 @@
 #define DELAY 100
 #define SHOW_PROCESSING 1
 
-#define ALG 0  // 0 A*, 1 DIJKSTRA, 2 FLOYD-WARSHALL
+#define ALG 2  // 0 A*, 1 DIJKSTRA, 2 FLOYD-WARSHALL
 
 int distancia_manhattan (int x_atual, int x_final, int y_atual, int y_final)
 {
@@ -147,7 +147,8 @@ void floyd_warshall(MazeDef* maze, PlayerDef* player, int **distancia, int**prox
     for (k=0; k < maze_getGraphV(maze); k++){
         for(i=0; i < maze_getGraphV(maze); i++){
             for(j=0; j < maze_getGraphV(maze); j++){
-                if((distancia[i][k] != 10000 && distancia[k][j] != 10000) && distancia[i][j] > distancia[i][k] + distancia[k][j]){
+                if((distancia[i][k] != 10000 && distancia[k][j] != 10000) 
+                   && distancia[i][j] > distancia[i][k] + distancia[k][j]){
                     distancia[i][j] = distancia[i][k] + distancia[k][j];
                     prox[i][j] = prox[i][k];
                     player->steps++; 
